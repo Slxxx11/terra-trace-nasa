@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TERRA-TRACE // Earth System Trend Detective</title>
+  <!-- Космические шрифты Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Библиотека для графиков Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Наш файл стилей -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Фоновая космическая сетка и луч сканера -->
+  <div class="bg-grid"></div>
+  <div id="radar-scanline" class="scanline"></div>
+
+  <!-- ЗОНА 1: Верхняя командная панель -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="pulse-dot"></div>
+      <div>
+        <h1>TERRA-TRACE</h1>
+        <span class="subtitle" data-i18n="subtitle">EARTH SYSTEM TREND DETECTIVE</span>
+      </div>
+    </div>
+
+    <div class="presets">
+      <button class="preset-btn active" data-preset="tienshan_aral" data-i18n="preset1">Тянь-Шань vs Арал</button>
+      <button class="preset-btn" data-preset="arctic_equator" data-i18n="preset2">Арктика vs Экватор</button>
+      <button class="preset-btn" data-preset="amazon_sahara" data-i18n="preset3">Амазония vs Сахара</button>
+    </div>
+
+    <div class="actions">
+      <button id="open-nasa-modal" class="nasa-btn">
+        <span>🛰️</span>
+        <span data-i18n="nasaBtn">NASA API</span>
+      </button>
+      <button id="lang-toggle" class="lang-btn">RU | EN</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- ЗОНА 2: Панель управления расследованием -->
+    <section class="control-bar glass-card">
+      <div class="control-group">
+        <label for="variable-select" data-i18n="varLabel">ПЕРЕМЕННАЯ НАБЛЮДЕНИЯ:</label>
+        <select id="variable-select" class="custom-select">
+          <option value="temp" data-i18n="varTemp">Температура поверхности (°C)</option>
+          <option value="precip" data-i18n="varPrecip">Годовые осадки (мм/день)</option>
+          <option value="glacier" data-i18n="varGlacier">Индекс снега / ледников (%)</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label data-i18n="periodLabel">ПЕРИОД АНАЛИЗА:</label>
+        <div class="period-pills">
+          <button class="period-btn active" data-start="1990">1990–2025</button>
+          <button class="period-btn" data-start="2000">2000–2025</button>
+          <button class="period-btn" data-start="2010">2010–2025</button>
+        </div>
+      </div>
+
+      <div class="telemetry-status">
+        <span class="status-label">TELEMETRY:</span>
+        <span id="data-source-badge" class="status-val">SATELLITE ARCHIVE</span>
+      </div>
+    </section>
+
+    <!-- ЗОНА 3: Главная арена сравнения (Split-Screen) -->
+    <section class="comparison-grid">
+      <!-- Левая карточка: Регион А -->
+      <article class="region-card glass-card tilt-card" data-accent="cyan">
+        <div class="spotlight"></div>
+        <div class="card-header">
+          <div>
+            <span class="region-tag cyan-tag" data-i18n="regionA">РЕГИОН А</span>
+            <h2 id="title-a">Ледники Тянь-Шаня</h2>
+            <p id="coords-a" class="coords">42.15° N, 78.20° E</p>
+          </div>
+          <div id="badge-a" class="trend-badge positive">+0.45°C / дек</div>
+        </div>
+
+        <div class="chart-wrapper">
+          <canvas id="chart-a"></canvas>
+        </div>
+
+        <div class="metrics-row">
+          <div class="metric">
+            <span class="m-label" data-i18n="mMean">СРЕДНЕЕ</span>
+            <span id="mean-a" class="m-val scramble-num">0.0</span>
+          </div>
+          <div class="metric">
+            <span class="m-label" data-i18n="mChange">ИЗМЕНЕНИЕ</span>
+            <span id="change-a" class="m-val scramble-num">0.0</span>
+          </div>
+          <div class="metric">
+            <span class="m-label">P-VALUE</span>
+            <span id="pval-a" class="m-val scramble-num">0.000</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Правая карточка: Регион Б -->
+      <article class="region-card glass-card tilt-card" data-accent="amber">
+        <div class="spotlight"></div>
+        <div class="card-header">
+          <div>
+            <span class="region-tag amber-tag" data-i18n="regionB">РЕГИОН Б</span>
+            <h2 id="title-b">Бассейн Аральского моря</h2>
+            <p id="coords-b" class="coords">45.00° N, 59.50° E</p>
+          </div>
+          <div id="badge-b" class="trend-badge negative">-1.20°C / дек</div>
+        </div>
+
+        <div class="chart-wrapper">
+          <canvas id="chart-b"></canvas>
+        </div>
+
+        <div class="metrics-row">
+          <div class="metric">
+            <span class="m-label" data-i18n="mMean">СРЕДНЕЕ</span>
+            <span id="mean-b" class="m-val scramble-num">0.0</span>
+          </div>
+          <div class="metric">
+            <span class="m-label" data-i18n="mChange">ИЗМЕНЕНИЕ</span>
+            <span id="change-b" class="m-val scramble-num">0.0</span>
+          </div>
+          <div class="metric">
+            <span class="m-label">P-VALUE</span>
+            <span id="pval-b" class="m-val scramble-num">0.000</span>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- ЗОНА 4: Вердикт Детектива -->
+    <section class="verdict-panel glass-card">
+      <div class="verdict-header">
+        <div class="verdict-title">
+          <span>🔍</span>
+          <h3 data-i18n="verdictTitle">ВЕРДИКТ ДЕТЕКТИВА СИСТЕМЫ ЗЕМЛИ</h3>
+        </div>
+        <div id="significance-pill" class="sig-pill sig-true" data-i18n="sigConfirmed">
+          СТАТИСТИЧЕСКИ ЗНАЧИМО (p &lt; 0.05)
+        </div>
+      </div>
+      <p id="verdict-text" class="verdict-body">
+        Анализ спутниковых рядов показывает устойчивый разнонаправленный сдвиг...
+      </p>
+    </section>
+  </main>
+
+  <!-- Модальное окно загрузки живых данных NASA POWER API -->
+  <div id="nasa-modal" class="modal hidden">
+    <div class="modal-content glass-card">
+      <div class="modal-header">
+        <h3 data-i18n="modalTitle">Загрузка живых данных NASA POWER</h3>
+        <button id="close-modal" class="close-btn">✕</button>
+      </div>
+      <p class="modal-desc" data-i18n="modalDesc">
+        Введите координаты любых двух точек на Земле. Приложение напрямую запросит спутниковую телеметрию температуры (T2M) и осадков (PRECTOTCORR) с серверов NASA.
+      </p>
+      <div class="modal-grid">
+        <div class="coord-box">
+          <h4 class="cyan-text" data-i18n="regionA">РЕГИОН А</h4>
+          <input type="text" id="name-input-a" value="Бишкек (Кыргызстан)" placeholder="Название" />
+          <div class="lat-lon">
+            <input type="number" step="0.01" id="lat-a" value="42.87" placeholder="Широта (Lat)" />
+            <input type="number" step="0.01" id="lon-a" value="74.59" placeholder="Долгота (Lon)" />
+          </div>
+        </div>
+        <div class="coord-box">
+          <h4 class="amber-text" data-i18n="regionB">РЕГИОН Б</h4>
+          <input type="text" id="name-input-b" value="Аральск (Казахстан)" placeholder="Название" />
+          <div class="lat-lon">
+            <input type="number" step="0.01" id="lat-b" value="46.80" placeholder="Широта (Lat)" />
+            <input type="number" step="0.01" id="lon-b" value="61.67" placeholder="Долгота (Lon)" />
+          </div>
+        </div>
+      </div>
+      <button id="fetch-nasa-btn" class="primary-action-btn" data-i18n="fetchBtn">
+        ЗАПРОСИТЬ ТЕЛЕМЕТРИЮ NASA
+      </button>
+    </div>
+  </div>
+
+  <!-- Наш файл логики -->
+  <script src="app.js"></script>
+</body>
+</html>
