@@ -12,3 +12,5 @@ TERRA-TRACE is an interactive, user-friendly "mission control" web dashboard des
 - **Chart.js:** Interactive data visualization and multi-region comparison graphs.
 - **NASA POWER API:** Real-time satellite meteorology and solar telemetry integration.
 - **Bilingual Support:** Instant switching between English and Russian interfaces.
+
+- https://slxxx11.github.io/terra-trace-nasa/
